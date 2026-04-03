@@ -14,11 +14,14 @@ export default function Completed() {
   const progressList = getProgressList().filter(a => a.status === 'completed');
   const [selectedAnime, setSelectedAnime] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "anime" | "movie" | "series">("all");
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
-  const filteredList = progressList.filter(anime => 
-    anime.anime_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredList = progressList.filter(anime => {
+    const matchesSearch = anime.anime_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = activeTab === "all" || anime.type === activeTab;
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <div className="flex flex-col gap-8 mt-8 pb-10">
@@ -50,6 +53,23 @@ export default function Completed() {
             <Plus className="w-4 h-4" /> Add
           </button>
         </div>
+      </div>
+
+      {/* Media Type Filter Tabs */}
+      <div className="flex gap-2 p-1 bg-black/40 rounded-xl w-full sm:w-max mx-auto md:mx-0">
+        {(["all", "anime", "movie", "series"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 sm:px-6 py-2 text-sm font-bold rounded-lg transition-all capitalize ${
+              activeTab === tab 
+                ? 'bg-accent/20 text-accent border border-accent/30 shadow-lg shadow-accent/5' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
