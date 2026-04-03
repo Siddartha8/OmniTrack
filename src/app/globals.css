@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+  
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-complex: float-complex 10s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* Default: Dark Anime Theme */
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: rgba(24, 24, 27, 0.5);
+  --card-foreground: #fafafa;
+  --primary: #c084fc; 
+  --primary-foreground: #ffffff;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #3b0764; 
+  --accent-foreground: #fafafa;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #c084fc;
+  --radius: 1rem;
+}
+
+.theme-ghibli {
+  --background: #f4f7f4;
+  --foreground: #2d3748;
+  --card: rgba(255, 255, 255, 0.6);
+  --card-foreground: #2d3748;
+  --primary: #68d391;
+  --primary-foreground: #ffffff;
+  --muted: #e2e8f0;
+  --muted-foreground: #718096;
+  --accent: #c6f6d5;
+  --accent-foreground: #22543d;
+  --border: rgba(0, 0, 0, 0.05);
+  --ring: #68d391;
+}
+
+.theme-sports {
+  --background: #110c08;
+  --foreground: #fdf6e3;
+  --card: rgba(30, 20, 15, 0.7);
+  --card-foreground: #fdf6e3;
+  --primary: #ea580c; 
+  --primary-foreground: #ffffff;
+  --muted: #3f2010;
+  --muted-foreground: #fdba74;
+  --accent: #7c2d12;
+  --accent-foreground: #fdf6e3;
+  --border: rgba(234, 88, 12, 0.2);
+  --ring: #ea580c;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  min-height: 100vh;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.theme-ghibli .glass-panel {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Animations for backgrounds and floating items */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes float-complex {
+  0% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(2deg); }
+  66% { transform: translateY(5px) rotate(-1deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+html {
+  scroll-behavior: smooth;
 }

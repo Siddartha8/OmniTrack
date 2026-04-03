@@ -3,18 +3,18 @@
 import { useAnimeStore } from "@/store/useAnimeStore";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
-import { Search, Filter, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { AnimeDetailsModal } from "@/components/AnimeDetailsModal";
-import { AddEntryModal } from "@/components/AddEntryModal";
 import { AnimeCover } from "@/components/AnimeCover";
+import { AddCompletedModal } from "@/components/AddCompletedModal";
 import { useState } from "react";
 
-export default function Home() {
+export default function Completed() {
   const { getProgressList } = useAnimeStore();
-  const progressList = getProgressList().filter(a => a.status === 'watching' && (a.type === 'anime' || !a.type));
+  const progressList = getProgressList().filter(a => a.status === 'completed');
   const [selectedAnime, setSelectedAnime] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
   const filteredList = progressList.filter(anime => 
     anime.anime_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -22,39 +22,32 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-8 mt-8 pb-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
+          className="flex flex-col"
         >
-          <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-            Anime Library
-          </h1>
-          <p className="text-muted-foreground mt-2 font-medium">Manage your active series and tracking progress</p>
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary">Completed Archive</h1>
+          <p className="text-muted-foreground mt-2 font-medium">Relive the journeys you've finished.</p>
         </motion.div>
         
-        <div className="flex gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64">
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text" 
-              placeholder="Search anime..." 
+              placeholder="Search archive..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black/20 border border-border rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium"
+              className="w-full bg-black/20 border border-border rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all font-medium"
             />
           </div>
-          
           <button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="shrink-0 px-4 py-2 bg-primary/20 text-primary font-bold rounded-full hover:bg-primary hover:text-primary-foreground transition-all flex items-center justify-center gap-2 border border-primary/20"
+            onClick={() => setIsCompletedModalOpen(true)}
+            className="shrink-0 px-4 py-2 bg-accent/20 text-accent font-bold rounded-full hover:bg-accent hover:text-accent-foreground transition-all flex items-center justify-center gap-2 border border-accent/20"
           >
             <Plus className="w-4 h-4" /> Add
-          </button>
-
-          <button className="p-2 px-4 rounded-full border border-border bg-black/20 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm font-semibold cursor-pointer">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            Filter
           </button>
         </div>
       </div>
@@ -71,19 +64,19 @@ export default function Home() {
               <GlassCard 
                 onClick={() => setSelectedAnime(anime.anime_name)}
                 hoverEffect 
-                className="h-full flex flex-col gap-4 overflow-hidden group cursor-pointer p-0 border-transparent hover:border-primary/30"
+                className="h-full flex flex-col gap-4 overflow-hidden group cursor-pointer p-0 border-transparent hover:border-accent/30"
               >
                 {/* Poster Image */}
-                <div className="w-full h-48 bg-gradient-to-b from-primary/20 to-accent/10 relative overflow-hidden">
+                <div className="w-full h-48 bg-gradient-to-b from-accent/20 to-primary/10 relative overflow-hidden">
                   <AnimeCover title={anime.anime_name} type={anime.type} />
-
-                  <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-md rounded-lg px-3 py-1.5 shadow-lg border border-primary/20 scale-90 group-hover:scale-100 transition-transform text-primary font-bold z-20">
-                    EP {anime.total_episodes}
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors z-10" />
+                  <div className="absolute bottom-4 right-4 bg-accent/90 backdrop-blur-md rounded-lg px-3 py-1.5 shadow-lg border border-white/20 scale-90 group-hover:scale-100 transition-transform text-white font-bold z-20">
+                    COMPLETE
                   </div>
                 </div>
                 
                 <div className="p-5 flex flex-col justify-center pt-4 pb-4">
-                  <h3 className="font-bold text-xl line-clamp-1 text-center group-hover:text-primary transition-colors">{anime.anime_name}</h3>
+                  <h3 className="font-bold text-xl line-clamp-1 text-center group-hover:text-accent transition-colors">{anime.anime_name}</h3>
                 </div>
               </GlassCard>
             </motion.div>
@@ -92,7 +85,7 @@ export default function Home() {
 
         {filteredList.length === 0 && (
           <div className="col-span-full py-20 text-center text-muted-foreground font-medium">
-            No matching anime found.
+            No completed series found.
           </div>
         )}
       </div>
@@ -104,7 +97,7 @@ export default function Home() {
       `}} />
 
       <AnimeDetailsModal animeName={selectedAnime} onClose={() => setSelectedAnime(null)} />
-      <AddEntryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddCompletedModal isOpen={isCompletedModalOpen} onClose={() => setIsCompletedModalOpen(false)} />
     </div>
   );
 }
