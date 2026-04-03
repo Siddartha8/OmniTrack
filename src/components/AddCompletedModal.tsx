@@ -16,6 +16,7 @@ export function AddCompletedModal({ isOpen, onClose }: AddCompletedModalProps) {
   const [formData, setFormData] = useState({
     animeName: "",
     totalEpisodes: "",
+    type: "Anime",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,17 +28,17 @@ export function AddCompletedModal({ isOpen, onClose }: AddCompletedModalProps) {
     // Log a single consolidated entry representing the completed series
     await addEntryAsync({
       anime_name: formData.animeName,
-      type: 'anime', // generic fallback
+      type: formData.type.toLowerCase(),
       season: "1",
       episode: episodes.toString(),
       total_episodes: episodes.toString(),
-      duration: (episodes * 24).toString(),
+      duration: formData.type === 'Movie' ? '120' : (episodes * 24).toString(),
     });
     
     // Explicitly mark this series as completed in the store
     await markCompleted(formData.animeName);
 
-    setFormData({ animeName: "", totalEpisodes: "" });
+    setFormData({ animeName: "", totalEpisodes: "", type: "Anime" });
     onClose();
   };
 
@@ -70,6 +71,19 @@ export function AddCompletedModal({ isOpen, onClose }: AddCompletedModalProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative z-10">
+              <div className="flex gap-2 p-1 bg-black/30 rounded-xl mb-1">
+                {["Anime", "Movie", "Series"].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: t })}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${formData.type === t ? 'bg-accent/20 text-accent border border-accent/30 box-shadow-lg' : 'text-muted-foreground hover:text-white'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+
               <div>
                 <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Anime Title</label>
                 <input
