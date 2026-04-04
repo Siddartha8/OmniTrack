@@ -28,7 +28,10 @@ export default function Analytics() {
     const dateStr = format(new Date(entry.created_at), 'yyyy-MM-dd');
     const dayData = last7Days.find(d => d.rawDate === dateStr);
     if (dayData) {
-      dayData.minutes += entry.duration;
+      const parts = entry.duration.toString().split(':').map(Number);
+      const m = parts[0] || 0;
+      const s = parts[1] || 0;
+      dayData.minutes += (m + (s / 60));
       dayData.episodes += 1;
     }
   });
