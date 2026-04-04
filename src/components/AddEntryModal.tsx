@@ -29,8 +29,16 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
     e.preventDefault();
     if (!formData.anime_name) return;
     
+    const submitPayload = { ...formData };
+    if (submitPayload.type === 'Movie') {
+      submitPayload.season = "1";
+      submitPayload.episode = "1";
+    } else {
+      if (!submitPayload.episode) submitPayload.episode = "1";
+    }
+    
     setLoading(true);
-    await addEntryAsync(formData);
+    await addEntryAsync(submitPayload);
     
     setFormData({ anime_name: "", type: "Anime", season: "1", episode: "", total_episodes: "", duration: "24" });
     setLoading(false);
@@ -95,49 +103,53 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-muted-foreground tracking-wider">
-                        Season
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={formData.season}
-                        onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-                        className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
-                      />
+                  {formData.type !== 'Movie' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-semibold text-muted-foreground tracking-wider">
+                          Season
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.season}
+                          onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                          className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
+                        />
+                      </div>
+                      
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-semibold text-muted-foreground tracking-wider">
+                          Episode #
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.episode}
+                          onChange={(e) => setFormData({ ...formData, episode: e.target.value })}
+                          className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
+                          placeholder="Optional"
+                        />
+                      </div>
                     </div>
-                    
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-muted-foreground tracking-wider">
-                        Episode #
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={formData.episode}
-                        onChange={(e) => setFormData({ ...formData, episode: e.target.value })}
-                        className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
-                        placeholder="Optional"
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-muted-foreground tracking-wider">
-                        Total Season Eps (Optional)
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={formData.total_episodes}
-                        onChange={(e) => setFormData({ ...formData, total_episodes: e.target.value })}
-                        className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
-                        placeholder="Leave blank if unknown"
-                      />
-                    </div>
+                    {formData.type !== 'Movie' && (
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-semibold text-muted-foreground tracking-wider">
+                          Total Season Eps (Optional)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.total_episodes}
+                          onChange={(e) => setFormData({ ...formData, total_episodes: e.target.value })}
+                          className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
+                          placeholder="Leave blank if unknown"
+                        />
+                      </div>
+                    )}
                     
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-semibold text-muted-foreground tracking-wider">

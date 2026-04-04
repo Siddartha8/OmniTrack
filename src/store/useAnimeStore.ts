@@ -314,6 +314,6 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         }
       }
     });
-    return Array.from(map.values());
+    return Array.from(map.values()).sort((a, b) => new Date(b.last_watched).getTime() - new Date(a.last_watched).getTime());
   }
 }));

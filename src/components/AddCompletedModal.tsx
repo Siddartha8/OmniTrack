@@ -26,14 +26,14 @@ export function AddCompletedModal({ isOpen, onClose }: AddCompletedModalProps) {
 
     const episodes = parseInt(formData.totalEpisodes) || 12;
 
-    // Log a single consolidated entry representing the completed series
+    // Log a single consolidated entry representing the completed series/movie
     await addEntryAsync({
       anime_name: formData.animeName,
       type: formData.type.toLowerCase(),
-      season: formData.season.trim() ? formData.season.trim() : "1",
-      episode: episodes.toString(),
-      total_episodes: episodes.toString(),
-      duration: formData.type === 'Movie' ? '120' : (episodes * 24).toString(),
+      season: formData.type === 'Movie' ? "1" : (formData.season.trim() ? formData.season.trim() : "1"),
+      episode: formData.type === 'Movie' ? "1" : episodes.toString(),
+      total_episodes: formData.type === 'Movie' ? "1" : episodes.toString(),
+      duration: formData.type === 'Movie' ? '120:00' : (episodes * 24).toString() + ':00',
     });
     
     // Explicitly mark this series as completed in the store
@@ -98,28 +98,32 @@ export function AddCompletedModal({ isOpen, onClose }: AddCompletedModalProps) {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Total Episodes</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 64"
-                    value={formData.totalEpisodes}
-                    onChange={(e) => setFormData({ ...formData, totalEpisodes: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all font-medium text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Season (Optional)</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 1"
-                    min="1"
-                    value={formData.season}
-                    onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all font-medium text-foreground"
-                  />
-                </div>
+                {formData.type !== 'Movie' && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Total Episodes</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g. 64"
+                      value={formData.totalEpisodes}
+                      onChange={(e) => setFormData({ ...formData, totalEpisodes: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all font-medium text-foreground"
+                    />
+                  </div>
+                )}
+                {formData.type !== 'Movie' && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Season (Optional)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 1"
+                      min="1"
+                      value={formData.season}
+                      onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all font-medium text-foreground"
+                    />
+                  </div>
+                )}
               </div>
 
               <button
