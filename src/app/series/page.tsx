@@ -78,7 +78,7 @@ export default function SeriesPage() {
                   <AnimeCover title={anime.anime_name} type={anime.type} />
 
                   <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-md rounded-lg px-3 py-1.5 shadow-lg border border-primary/20 scale-90 group-hover:scale-100 transition-transform text-primary font-bold z-20">
-                    S{anime.latest_season} E{anime.total_episodes}
+                    {anime.latest_season > 1 ? `S${anime.latest_season} EP ${anime.total_episodes}` : `EP ${anime.total_episodes}`}
                   </div>
                 </div>
                 

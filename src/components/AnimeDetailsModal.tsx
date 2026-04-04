@@ -19,6 +19,8 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
     season: "1", episode: "", duration: "", notes: ""
   });
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [newTitle, setNewTitle] = useState(animeName || "");
 
   if (!animeName) return null;
 
@@ -26,6 +28,7 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
   
   // Status extraction logic for Modal tri-state toggles
   const currentStatus = animeEntries.length > 0 ? animeEntries[0].status : 'watching';
+  const currentType = animeEntries.length > 0 ? (animeEntries[0].type || 'anime').toLowerCase() : 'anime';
   
   // Group by Season
   const entriesBySeason = animeEntries.reduce((acc, entry) => {
@@ -50,7 +53,7 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
     editEntryAsync(id, {
       season: parseInt(editForm.season) || 1,
       episode: parseInt(editForm.episode) || 1,
-      duration: parseInt(editForm.duration) || 0,
+      duration: editForm.duration,
       notes: editForm.notes
     });
     setEditingId(null);
@@ -85,34 +88,86 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
           <GlassCard className="flex flex-col h-full p-0 overflow-hidden shadow-2xl border-primary/20 bg-background/95">
             <div className="p-6 border-b border-border flex flex-col gap-4 bg-black/20">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent line-clamp-1 pr-4">
-                  {animeName}
-                </h2>
-                <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-white/10 transition-colors cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
+                
+                {isEditingTitle ? (
+                  <div className="flex items-center gap-3 w-full pr-4">
+                    <input 
+                      type="text" 
+                      value={newTitle} 
+                      onChange={(e) => setNewTitle(e.target.value)} 
+                      className="flex-1 bg-black/40 border border-border rounded-lg px-3 py-2 text-xl font-bold focus:ring-1 focus:ring-primary outline-none text-foreground"
+                      autoFocus
+                    />
+                    <button 
+                      onClick={async () => {
+                        if (newTitle.trim() && newTitle !== animeName) {
+                          await useAnimeStore.getState().updateTitle(animeName, newTitle);
+                          onClose();
+                        } else {
+                          setIsEditingTitle(false);
+                        }
+                      }}
+                      className="p-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors cursor-pointer"
+                    >
+                      <Check className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => setIsEditingTitle(false)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent line-clamp-1">
+                      {animeName}
+                    </h2>
+                    <button onClick={() => { setIsEditingTitle(true); setNewTitle(animeName); }} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                
+                {!isEditingTitle && (
+                  <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-white/10 transition-colors cursor-pointer ml-auto">
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
 
-              {/* Status Toggles */}
-              <div className="flex gap-2 p-1 bg-black/40 rounded-xl w-full sm:w-max">
-                <button 
-                  onClick={() => markWatching(animeName)}
-                  className={`flex-1 sm:px-6 py-2 text-sm font-bold rounded-lg transition-all ${currentStatus === 'watching' ? 'bg-primary/20 text-primary border border-primary/30 shadow-lg shadow-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
-                >
-                  Watching
-                </button>
-                <button 
-                  onClick={() => markWaiting(animeName)}
-                  className={`flex-1 sm:px-6 py-2 text-sm font-bold rounded-lg transition-all ${currentStatus === 'waiting' ? 'bg-accent/20 text-accent border border-accent/30 shadow-lg shadow-accent/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
-                >
-                  Waiting
-                </button>
-                <button 
-                  onClick={() => markCompleted(animeName)}
-                  className={`flex-1 sm:px-6 py-2 text-sm font-bold rounded-lg transition-all ${currentStatus === 'completed' ? 'bg-green-500/20 text-green-500 border border-green-500/30 shadow-lg shadow-green-500/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
-                >
-                  Completed
-                </button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Media Type Toggles */}
+                <div className="flex gap-2 p-1 bg-black/40 rounded-xl w-full sm:w-max">
+                  {(["anime", "movie", "series"] as const).map((t) => (
+                    <button 
+                      key={t}
+                      onClick={() => useAnimeStore.getState().updateType(animeName, t)}
+                      className={`flex-1 sm:px-4 py-2 text-xs font-bold rounded-lg transition-all capitalize ${currentType === t ? 'bg-white/20 text-white border border-white/30 shadow-lg shadow-white/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Status Toggles */}
+                <div className="flex gap-2 p-1 bg-black/40 rounded-xl w-full sm:w-max">
+                  <button 
+                    onClick={() => markWatching(animeName)}
+                    className={`flex-1 sm:px-5 py-2 text-sm font-bold rounded-lg transition-all ${currentStatus === 'watching' ? 'bg-primary/20 text-primary border border-primary/30 shadow-lg shadow-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
+                  >
+                    Watching
+                  </button>
+                  <button 
+                    onClick={() => markWaiting(animeName)}
+                    className={`flex-1 sm:px-5 py-2 text-sm font-bold rounded-lg transition-all ${currentStatus === 'waiting' ? 'bg-accent/20 text-accent border border-accent/30 shadow-lg shadow-accent/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
+                  >
+                    Waiting
+                  </button>
+                  <button 
+                    onClick={() => markCompleted(animeName)}
+                    className={`flex-1 sm:px-5 py-2 text-sm font-bold rounded-lg transition-all ${currentStatus === 'completed' ? 'bg-green-500/20 text-green-500 border border-green-500/30 shadow-lg shadow-green-500/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5 cursor-pointer'}`}
+                  >
+                    Completed
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -149,8 +204,8 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                         <input type="number" required value={editForm.episode} onChange={(e) => setEditForm({...editForm, episode: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                       </div>
                       <div>
-                        <label className="text-xs text-muted-foreground block mb-1">Time (mins)</label>
-                        <input type="number" required value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
+                        <label className="text-xs text-muted-foreground block mb-1">Time (MM:SS)</label>
+                        <input type="text" required placeholder="15:30" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                       </div>
                     </div>
                     <div>
@@ -190,8 +245,8 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                               <input type="number" value={editForm.episode} onChange={(e) => setEditForm({...editForm, episode: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                             </div>
                             <div>
-                              <label className="text-xs text-muted-foreground block mb-1">Time (mins)</label>
-                              <input type="number" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
+                              <label className="text-xs text-muted-foreground block mb-1">Time (MM:SS)</label>
+                              <input type="text" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                             </div>
                           </div>
                           <div>
@@ -213,11 +268,48 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                       ) : (
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4 className="font-bold text-lg text-primary">Episode {entry.episode}</h4>
+                            <div className="flex items-center gap-3">
+                              <h4 className="font-bold text-lg text-primary">Episode</h4>
+                              <div className="flex items-center gap-2 bg-black/40 border border-white/5 rounded-lg px-1.5 py-0.5 shadow-inner">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (entry.episode > 1) {
+                                      editEntryAsync(entry.id, {
+                                        episode: entry.episode - 1,
+                                        duration: entry.duration,
+                                        notes: entry.notes || "",
+                                        season: entry.season || 1
+                                      });
+                                    }
+                                  }}
+                                  className="w-6 h-6 flex flex-shrink-0 items-center justify-center rounded-md hover:bg-white/10 text-muted-foreground hover:text-white transition-colors cursor-pointer text-lg leading-none"
+                                >
+                                  -
+                                </button>
+                                <span className="font-bold text-white text-base min-w-[1.5rem] text-center">{entry.episode}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    editEntryAsync(entry.id, {
+                                      episode: entry.episode + 1,
+                                      duration: entry.duration,
+                                      notes: entry.notes || "",
+                                      season: entry.season || 1
+                                    });
+                                  }}
+                                  className="w-6 h-6 flex flex-shrink-0 items-center justify-center rounded-md hover:bg-white/10 text-muted-foreground hover:text-white transition-colors cursor-pointer text-lg leading-none"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
                             <div className="flex gap-3 text-xs text-muted-foreground mt-1 font-medium">
                               <span>{format(new Date(entry.created_at), 'MMM d, yyyy')}</span>
                               <span>•</span>
-                              <span>{entry.duration} mins watched</span>
+                              <span>{entry.duration} watched</span>
                             </div>
                             {entry.notes && <p className="text-sm mt-3 text-foreground/80 italic border-l-2 border-primary/30 pl-3">"{entry.notes}"</p>}
                           </div>

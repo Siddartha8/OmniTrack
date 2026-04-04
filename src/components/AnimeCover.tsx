@@ -25,10 +25,18 @@ const processQueue = async () => {
 };
 
 export function AnimeCover({ title, type = 'anime' }: { title: string, type?: string }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(imageCache.get(title) || null);
+  const cacheKey = `${title}_${type}`;
+  const [imageUrl, setImageUrl] = useState<string | null>(imageCache.get(cacheKey) || null);
 
   useEffect(() => {
-    if (imageUrl) return;
+    const cached = imageCache.get(cacheKey);
+    if (cached) {
+      setImageUrl(cached);
+      return;
+    }
+    
+    // Clear image immediately if type changed and isn't cached yet
+    setImageUrl(null);
 
     requestQueue.push(async () => {
       try {
@@ -39,7 +47,7 @@ export function AnimeCover({ title, type = 'anime' }: { title: string, type?: st
             const data = await res.json();
             if (data && data.image && data.image.original) {
               setImageUrl(data.image.original);
-              imageCache.set(title, data.image.original);
+              imageCache.set(cacheKey, data.image.original);
             }
           }
         } else {
@@ -50,7 +58,7 @@ export function AnimeCover({ title, type = 'anime' }: { title: string, type?: st
             if (data.data && data.data.length > 0) {
               const img = data.data[0].images.webp.large_image_url || data.data[0].images.jpg.large_image_url;
               setImageUrl(img);
-              imageCache.set(title, img);
+              imageCache.set(cacheKey, img);
             }
           }
         }
@@ -60,7 +68,7 @@ export function AnimeCover({ title, type = 'anime' }: { title: string, type?: st
     });
     
     processQueue();
-  }, [title, type, imageUrl]);
+  }, [title, type, cacheKey]);
 
   return (
     <>

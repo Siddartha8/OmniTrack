@@ -6,9 +6,8 @@ export interface AnimeEntry {
   anime_name: string;
   type?: string;
   season?: number;
-  total_episodes?: number | null;
   episode: number;
-  duration: number;
+  duration: string;
   notes?: string;
   status: string;
   created_at: string;
@@ -17,7 +16,7 @@ export interface AnimeEntry {
 export interface AnimeProgress {
   anime_name: string;
   total_episodes: number;
-  total_duration: number;
+  total_duration: string; // Displayed dynamically as MM:SS or Mins
   last_watched: string;
   status: 'watching' | 'completed' | 'waiting';
   type: string;
@@ -33,10 +32,12 @@ interface AnimeState {
   markCompleted: (anime_name: string) => Promise<void>;
   markWatching: (anime_name: string) => Promise<void>;
   markWaiting: (anime_name: string) => Promise<void>;
+  updateType: (anime_name: string, newType: string) => Promise<void>;
+  updateTitle: (oldTitle: string, newTitle: string) => Promise<void>;
   getWeeklyStreak: () => number;
   getProgressList: () => AnimeProgress[];
   deleteEntryAsync: (progressId: string) => Promise<void>;
-  editEntryAsync: (progressId: string, data: { episode: number, duration: number, notes?: string, season?: number }) => Promise<void>;
+  editEntryAsync: (progressId: string, data: { episode: number, duration: string, notes?: string, season?: number }) => Promise<void>;
 }
 
 export const useAnimeStore = create<AnimeState>()((set, get) => ({
@@ -97,10 +98,9 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         id: row.id,
         anime_name: content.title || "Unknown",
         type: content.type || "anime",
-        season: season.season_number || 1,
         total_episodes: content.total_episodes || null,
         episode: row.current_episode || 0,
-        duration: row.duration_watched || 0,
+        duration: row.duration_watched?.toString() || "0",
         notes: row.notes || "",
         status: content.status || 'watching',
         created_at: row.updated_at,
@@ -168,7 +168,7 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
     await supabase.from('progress').insert({
       season_id: seasonId,
       current_episode: parseInt(data.episode) || 0,
-      duration_watched: parseInt(data.duration) || 0,
+      duration_watched: String(data.duration || "0"),
       notes: (data as any).notes || ""
     });
 
@@ -244,6 +244,26 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
     }
   },
 
+  updateType: async (anime_name, newType) => {
+    // Cloud Sync
+    const supabase = createClient();
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData?.user) {
+      await supabase.from('content').update({ type: newType.toLowerCase() }).eq('user_id', authData.user.id).eq('title', anime_name);
+      await get().fetchData();
+    }
+  },
+
+  updateTitle: async (oldTitle, newTitle) => {
+    // Cloud Sync
+    const supabase = createClient();
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData?.user) {
+      await supabase.from('content').update({ title: newTitle }).eq('user_id', authData.user.id).eq('title', oldTitle);
+      await get().fetchData();
+    }
+  },
+
   getWeeklyStreak: () => 2,
 
   getProgressList: () => {
@@ -263,13 +283,31 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         });
       } else {
         const current = map.get(entry.anime_name)!;
-        if (entry.episode > current.total_episodes) {
+        const entrySeason = entry.season || 1;
+        
+        // If we found a higher season context, adopt its episode definitively 
+        if (entrySeason > current.latest_season) {
+          current.latest_season = entrySeason;
           current.total_episodes = entry.episode;
+        } 
+        // If we are in the same highest season context, just take the highest episode
+        else if (entrySeason === current.latest_season) {
+          if (entry.episode > current.total_episodes) {
+            current.total_episodes = entry.episode;
+          }
         }
-        if ((entry.season || 1) > current.latest_season) {
-          current.latest_season = entry.season || 1;
-        }
-        current.total_duration += entry.duration;
+        
+        // Summing duration strings
+        const p1 = current.total_duration.split(':').map(Number);
+        const p2 = entry.duration.split(':').map(Number);
+        const m1 = p1[0] || 0; const s1 = p1[1] || 0;
+        const m2 = p2[0] || 0; const s2 = p2[1] || 0;
+        
+        const totalSeconds = (m1 * 60 + s1) + (m2 * 60 + s2);
+        const rm = Math.floor(totalSeconds / 60);
+        const rs = totalSeconds % 60;
+        current.total_duration = rs > 0 ? `${rm}:${rs.toString().padStart(2, '0')}` : `${rm}`;
+
         if (new Date(entry.created_at) > new Date(current.last_watched)) {
           current.last_watched = entry.created_at;
         }
