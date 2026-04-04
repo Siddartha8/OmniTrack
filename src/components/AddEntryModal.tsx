@@ -27,7 +27,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.anime_name || !formData.episode) return;
+    if (!formData.anime_name) return;
     
     setLoading(true);
     await addEntryAsync(formData);
@@ -101,7 +101,6 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                         Season
                       </label>
                       <input
-                        required
                         type="number"
                         min="1"
                         value={formData.season}
@@ -115,13 +114,12 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                         Episode #
                       </label>
                       <input
-                        required
                         type="number"
                         min="1"
                         value={formData.episode}
                         onChange={(e) => setFormData({ ...formData, episode: e.target.value })}
                         className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
-                        placeholder="12"
+                        placeholder="Optional"
                       />
                     </div>
                   </div>
@@ -143,15 +141,14 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                     
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-semibold text-muted-foreground tracking-wider">
-                        Duration (mins, Optional)
+                        Time (MM:SS, Optional)
                       </label>
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
                         value={formData.duration}
                         onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         className="bg-black/20 border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground transition-all"
-                        placeholder="24"
+                        placeholder="24:00"
                       />
                     </div>
                   </div>
