@@ -188,7 +188,8 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
     let updates: any = {
       current_episode: data.episode,
       duration_watched: data.duration,
-      notes: data.notes || ""
+      notes: data.notes || "",
+      updated_at: new Date().toISOString()
     };
 
     if (data.season) {
