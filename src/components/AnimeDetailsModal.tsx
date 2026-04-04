@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Edit2, Check, Trash2, Plus } from "lucide-react";
 import { useAnimeStore, AnimeEntry } from "@/store/useAnimeStore";
@@ -10,6 +10,31 @@ import { format } from "date-fns";
 interface AnimeDetailsModalProps {
   animeName: string | null;
   onClose: () => void;
+}
+
+function InlineInput({ value, onSave, className = "" }: { value: string | number, onSave: (val: string) => void, className?: string }) {
+  const [val, setVal] = useState(value);
+  
+  // Sync state if external value changes (e.g. from + or - button)
+  useEffect(() => {
+    setVal(value);
+  }, [value]);
+
+  return (
+    <input
+      value={val}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={() => {
+        if (val !== value) onSave(val.toString());
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.currentTarget.blur();
+        }
+      }}
+      className={`bg-transparent border-none outline-none text-white font-bold text-center min-w-[2.5rem] w-full max-w-[4rem] ${className}`}
+    />
+  );
 }
 
 export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps) {
@@ -288,7 +313,18 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                                 >
                                   -
                                 </button>
-                                <span className="font-bold text-white text-base min-w-[1.5rem] text-center">{entry.episode}</span>
+                                <InlineInput 
+                                  value={entry.episode} 
+                                  onSave={(val) => {
+                                    editEntryAsync(entry.id, {
+                                      episode: parseInt(val) || entry.episode,
+                                      duration: entry.duration,
+                                      notes: entry.notes || "",
+                                      season: entry.season || 1
+                                    });
+                                  }}
+                                  className="text-base"
+                                />
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -328,7 +364,18 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                                 >
                                   -
                                 </button>
-                                <span className="font-bold text-white text-xs min-w-[2.5rem] text-center">{entry.duration}</span>
+                                <InlineInput 
+                                  value={entry.duration} 
+                                  onSave={(val) => {
+                                    editEntryAsync(entry.id, {
+                                      episode: entry.episode,
+                                      duration: val || "0:00",
+                                      notes: entry.notes || "",
+                                      season: entry.season || 1
+                                    });
+                                  }}
+                                  className="text-xs"
+                                />
                                 <button
                                   type="button"
                                   onClick={(e) => {
