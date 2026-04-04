@@ -306,10 +306,52 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                                 </button>
                               </div>
                             </div>
-                            <div className="flex gap-3 text-xs text-muted-foreground mt-1 font-medium">
+                            <div className="flex items-center gap-3 mt-3">
+                              <h4 className="font-bold text-sm text-accent">Time</h4>
+                              <div className="flex items-center gap-2 bg-black/40 border border-white/5 rounded-lg px-1.5 py-0.5 shadow-inner">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const parts = entry.duration.split(':').map(Number);
+                                    let m = parts[0] || 0;
+                                    const s = parts[1] || 0;
+                                    if (m > 0) m -= 1;
+                                    editEntryAsync(entry.id, {
+                                      episode: entry.episode,
+                                      duration: `${m}:${s.toString().padStart(2, '0')}`,
+                                      notes: entry.notes || "",
+                                      season: entry.season || 1
+                                    });
+                                  }}
+                                  className="w-5 h-5 flex flex-shrink-0 items-center justify-center rounded-md hover:bg-white/10 text-muted-foreground hover:text-white transition-colors cursor-pointer text-sm leading-none"
+                                >
+                                  -
+                                </button>
+                                <span className="font-bold text-white text-xs min-w-[2.5rem] text-center">{entry.duration}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const parts = entry.duration.split(':').map(Number);
+                                    let m = parts[0] || 0;
+                                    const s = parts[1] || 0;
+                                    m += 1;
+                                    editEntryAsync(entry.id, {
+                                      episode: entry.episode,
+                                      duration: `${m}:${s.toString().padStart(2, '0')}`,
+                                      notes: entry.notes || "",
+                                      season: entry.season || 1
+                                    });
+                                  }}
+                                  className="w-5 h-5 flex flex-shrink-0 items-center justify-center rounded-md hover:bg-white/10 text-muted-foreground hover:text-white transition-colors cursor-pointer text-sm leading-none"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex gap-3 text-[11px] text-muted-foreground mt-2 font-medium">
                               <span>{format(new Date(entry.created_at), 'MMM d, yyyy')}</span>
-                              <span>•</span>
-                              <span>{entry.duration} watched</span>
                             </div>
                             {entry.notes && <p className="text-sm mt-3 text-foreground/80 italic border-l-2 border-primary/30 pl-3">"{entry.notes}"</p>}
                           </div>
