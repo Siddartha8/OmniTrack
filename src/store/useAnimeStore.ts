@@ -98,6 +98,7 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         id: row.id,
         anime_name: content.title || "Unknown",
         type: content.type || "anime",
+        season: season.season_number || 1,
         total_episodes: content.total_episodes || null,
         episode: row.current_episode || 0,
         duration: row.duration_watched?.toString() || "0",
