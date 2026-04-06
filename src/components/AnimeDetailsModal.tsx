@@ -218,7 +218,7 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                     <div className="grid grid-cols-3 gap-3">
                       <div>
                         <label className="text-xs text-muted-foreground block mb-1">Season</label>
-                        <input type="number" min="1" value={editForm.season} onChange={(e) => setEditForm({...editForm, season: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground appearance-none" />
+                        <input type="number" min="1" autoComplete="off" id="new-entry-season" name="new-entry-season" value={editForm.season} onChange={(e) => setEditForm({...editForm, season: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground appearance-none" />
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground block mb-1">Episode #</label>
@@ -255,7 +255,7 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                           <div className="grid grid-cols-3 gap-3">
                             <div>
                               <label className="text-xs text-muted-foreground block mb-1">Season</label>
-                              <input type="number" min="1" value={editForm.season} onChange={(e) => setEditForm({...editForm, season: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground appearance-none" />
+                              <input type="number" min="1" autoComplete="off" id={`edit-season-${entry.id}`} name={`edit-season-${entry.id}`} value={editForm.season} onChange={(e) => setEditForm({...editForm, season: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground appearance-none" />
                             </div>
                             <div>
                               <label className="text-xs text-muted-foreground block mb-1">Episode #</label>
