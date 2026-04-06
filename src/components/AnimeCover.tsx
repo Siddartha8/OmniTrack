@@ -73,14 +73,23 @@ export function AnimeCover({ title, type = 'anime' }: { title: string, type?: st
   return (
     <>
       {imageUrl ? (
-        <motion.img 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          src={imageUrl} 
-          alt={title} 
-          className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" 
-        />
+        <>
+          {/* Blurred Background to fill empty border gaps */}
+          <img 
+            src={imageUrl} 
+            alt="blur background"
+            className="absolute inset-0 w-full h-full object-cover opacity-30 blur-lg scale-110"
+          />
+          {/* Fully visible sharp poster */}
+          <motion.img 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            src={imageUrl} 
+            alt={title} 
+            className="absolute inset-0 w-full h-full object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 relative z-0" 
+          />
+        </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity z-0">
           <span className="text-6xl font-black rotate-[-10deg] italic uppercase whitespace-nowrap overflow-hidden blur-[1px]">
