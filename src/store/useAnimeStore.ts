@@ -53,6 +53,12 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
     const { data: authData } = await supabase.auth.getUser();
     if (!authData?.user) {
       set({ loading: false });
+      // Zombie state failsafe: Middleware allowed us in based on a dead cookie.
+      // We must forcefully purge the dead cookie and return to login.
+      await supabase.auth.signOut();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
       return;
     }
 
