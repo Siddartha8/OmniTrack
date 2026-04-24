@@ -73,13 +73,6 @@ export function AnimeCover({ title, type = 'anime' }: { title: string, type?: st
   return (
     <>
       {imageUrl ? (
-        <>
-          {/* Blurred Background to fill empty border gaps */}
-          <img 
-            src={imageUrl} 
-            alt="blur background"
-            className="absolute inset-0 w-full h-full object-cover opacity-30 blur-lg scale-110"
-          />
           {/* Fully visible sharp poster */}
           <motion.img 
             initial={{ opacity: 0 }}
@@ -87,7 +80,7 @@ export function AnimeCover({ title, type = 'anime' }: { title: string, type?: st
             transition={{ duration: 0.5 }}
             src={imageUrl} 
             alt={title} 
-            className="absolute inset-0 w-full h-full object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 relative z-0" 
+            className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 relative z-0" 
           />
         </>
       ) : (
