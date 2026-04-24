@@ -84,19 +84,25 @@ export default function Completed() {
               <GlassCard 
                 onClick={() => setSelectedAnime(anime.anime_name)}
                 hoverEffect 
-                className="h-full flex flex-col gap-4 overflow-hidden group cursor-pointer p-0 border-transparent hover:border-accent/30"
+                className="h-full flex flex-col overflow-hidden group cursor-pointer p-0 border-transparent hover:border-primary/30 rounded-xl bg-[#121212]"
               >
                 {/* Poster Image */}
-                <div className="w-full h-48 bg-gradient-to-b from-accent/20 to-primary/10 relative overflow-hidden">
+                <div className="w-full aspect-[2/3] relative overflow-hidden bg-black">
                   <AnimeCover title={anime.anime_name} type={anime.type} />
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors z-10" />
-                  <div className="absolute bottom-4 right-4 bg-accent/90 backdrop-blur-md rounded-lg px-3 py-1.5 shadow-lg border border-white/20 scale-90 group-hover:scale-100 transition-transform text-white font-bold z-20">
-                    COMPLETE
-                  </div>
                 </div>
                 
-                <div className="p-5 flex flex-col justify-center pt-4 pb-4">
-                  <h3 className="font-bold text-xl line-clamp-1 text-center group-hover:text-accent transition-colors">{anime.anime_name}</h3>
+                {/* Progress Bar (Full because completed) */}
+                <div className="w-full h-1 bg-[#1a1a1a]">
+                  <div className="h-full bg-green-500 rounded-r-full" style={{ width: '100%' }}></div>
+                </div>
+                
+                {/* Info Container */}
+                <div className="p-3 flex flex-col justify-center">
+                  <h3 className="font-bold text-sm text-white line-clamp-1 mb-1.5 group-hover:text-primary transition-colors">{anime.anime_name}</h3>
+                  <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                    <span>{anime.type !== 'Movie' ? `Season ${anime.latest_season} Episode ${anime.total_episodes}` : 'Movie'}</span>
+                    <span>{anime.total_duration || '00:00'}</span>
+                  </div>
                 </div>
               </GlassCard>
             </motion.div>
