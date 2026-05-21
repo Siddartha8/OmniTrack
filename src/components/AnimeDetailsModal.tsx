@@ -50,6 +50,7 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
   // Favorite states
   const [isEditingFavProgressId, setIsEditingFavProgressId] = useState<string | null>(null);
   const [favProgressTimeInput, setFavProgressTimeInput] = useState("");
+  const [favProgressNoteInput, setFavProgressNoteInput] = useState("");
 
   const [isEditingMovieFav, setIsEditingMovieFav] = useState(false);
   const [favSceneName, setFavSceneName] = useState("");
@@ -58,7 +59,7 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
   if (!animeName) return null;
 
   const saveProgressFav = async (progressId: string) => {
-    await useAnimeStore.getState().toggleProgressFavorite(progressId, true, favProgressTimeInput);
+    await useAnimeStore.getState().toggleProgressFavorite(progressId, true, favProgressTimeInput, favProgressNoteInput);
     setIsEditingFavProgressId(null);
   };
 
@@ -95,7 +96,8 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
       duration: String(entry.duration), 
       notes: entry.notes || "",
       is_favorite: entry.is_favorite || false,
-      favorite_time: entry.favorite_time || ""
+      favorite_time: entry.favorite_time || "",
+      favorite_note: entry.favorite_note || ""
     } as any);
     setIsAdding(false);
   };
@@ -107,7 +109,8 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
       duration: editForm.duration || "0",
       notes: editForm.notes,
       is_favorite: (editForm as any).is_favorite || false,
-      favorite_time: (editForm as any).favorite_time || null
+      favorite_time: (editForm as any).favorite_time || null,
+      favorite_note: (editForm as any).favorite_note || null
     });
     setEditingId(null);
   };
@@ -123,7 +126,8 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
       duration: String(editForm.duration || "0"),
       notes: editForm.notes,
       is_favorite: (editForm as any).is_favorite || false,
-      favorite_time: (editForm as any).favorite_time || null
+      favorite_time: (editForm as any).favorite_time || null,
+      favorite_note: (editForm as any).favorite_note || null
     } as any);
     setIsAdding(false);
   };
@@ -346,15 +350,27 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                         </label>
                       </div>
                       {(editForm as any).is_favorite && (
-                        <div>
-                          <label className="text-xs text-muted-foreground block mb-1">Favorite Moment Time (Optional)</label>
-                          <input 
-                            type="text" 
-                            placeholder="e.g. 14:20" 
-                            value={(editForm as any).favorite_time || ""} 
-                            onChange={(e) => setEditForm({...editForm, favorite_time: e.target.value} as any)} 
-                            className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
-                          />
+                        <div className="flex gap-3">
+                          <div className="flex-1">
+                            <label className="text-xs text-muted-foreground block mb-1">Favorite Moment Time (Optional)</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. 14:20" 
+                              value={(editForm as any).favorite_time || ""} 
+                              onChange={(e) => setEditForm({...editForm, favorite_time: e.target.value} as any)} 
+                              className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
+                            />
+                          </div>
+                          <div className="flex-[2]">
+                            <label className="text-xs text-muted-foreground block mb-1">Favorite Note (Optional)</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. epic final duel" 
+                              value={(editForm as any).favorite_note || ""} 
+                              onChange={(e) => setEditForm({...editForm, favorite_note: e.target.value} as any)} 
+                              className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
@@ -409,15 +425,27 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                               </label>
                             </div>
                             {(editForm as any).is_favorite && (
-                              <div>
-                                <label className="text-xs text-muted-foreground block mb-1">Favorite Moment Time (Optional)</label>
-                                <input 
-                                  type="text" 
-                                  placeholder="e.g. 14:20" 
-                                  value={(editForm as any).favorite_time || ""} 
-                                  onChange={(e) => setEditForm({...editForm, favorite_time: e.target.value} as any)} 
-                                  className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
-                                />
+                              <div className="flex gap-3">
+                                <div className="flex-1">
+                                  <label className="text-xs text-muted-foreground block mb-1">Favorite Moment Time (Optional)</label>
+                                  <input 
+                                    type="text" 
+                                    placeholder="e.g. 14:20" 
+                                    value={(editForm as any).favorite_time || ""} 
+                                    onChange={(e) => setEditForm({...editForm, favorite_time: e.target.value} as any)} 
+                                    className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
+                                  />
+                                </div>
+                                <div className="flex-[2]">
+                                  <label className="text-xs text-muted-foreground block mb-1">Favorite Note (Optional)</label>
+                                  <input 
+                                    type="text" 
+                                    placeholder="e.g. epic final duel" 
+                                    value={(editForm as any).favorite_note || ""} 
+                                    onChange={(e) => setEditForm({...editForm, favorite_note: e.target.value} as any)} 
+                                    className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
@@ -549,33 +577,44 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                               {entry.is_favorite && (
                                 <span className="text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
                                   <Star className="w-3 h-3 fill-amber-400" />
-                                  <span>Favorite {entry.favorite_time ? `at ${entry.favorite_time}` : ''}</span>
+                                  <span>Favorite {entry.favorite_time ? `at ${entry.favorite_time}` : ''}{entry.favorite_note ? ` — ${entry.favorite_note}` : ''}</span>
                                 </span>
                               )}
                             </div>
                             {isEditingFavProgressId === entry.id && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <input 
-                                  type="text" 
-                                  placeholder="Fav time (Optional, e.g. 14:20)" 
-                                  value={favProgressTimeInput}
-                                  onChange={(e) => setFavProgressTimeInput(e.target.value)}
-                                  className="bg-black/40 border border-border rounded px-2.5 py-1 text-xs text-white focus:ring-1 focus:ring-amber-500 outline-none w-52"
-                                />
-                                <button 
-                                  onClick={() => saveProgressFav(entry.id)} 
-                                  className="p-1 hover:bg-white/10 rounded text-green-400 cursor-pointer"
-                                  title="Save Favorite Time"
-                                >
-                                  <Check className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  onClick={() => setIsEditingFavProgressId(null)} 
-                                  className="p-1 hover:bg-white/10 rounded text-muted-foreground cursor-pointer"
-                                  title="Cancel"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
+                              <div className="flex flex-col gap-2 mt-2 bg-amber-500/5 p-3 rounded-lg border border-amber-500/10 max-w-md">
+                                <div className="text-[10px] uppercase font-bold tracking-wider text-amber-400">Favorite Details</div>
+                                <div className="flex gap-2">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Fav time (e.g. 14:20)" 
+                                    value={favProgressTimeInput}
+                                    onChange={(e) => setFavProgressTimeInput(e.target.value)}
+                                    className="bg-black/40 border border-border rounded px-2.5 py-1 text-xs text-white focus:ring-1 focus:ring-amber-500 outline-none w-32"
+                                  />
+                                  <input 
+                                    type="text" 
+                                    placeholder="Fav note (e.g. epic fight)" 
+                                    value={favProgressNoteInput}
+                                    onChange={(e) => setFavProgressNoteInput(e.target.value)}
+                                    className="bg-black/40 border border-border rounded px-2.5 py-1 text-xs text-white focus:ring-1 focus:ring-amber-500 outline-none flex-1"
+                                  />
+                                </div>
+                                <div className="flex justify-end gap-1.5 mt-1">
+                                  <button 
+                                    onClick={() => setIsEditingFavProgressId(null)} 
+                                    className="px-2.5 py-1 text-[10px] hover:bg-white/10 rounded text-muted-foreground cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button 
+                                    onClick={() => saveProgressFav(entry.id)} 
+                                    className="px-2.5 py-1 text-[10px] bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded text-amber-300 font-semibold cursor-pointer flex items-center gap-1"
+                                    title="Save Favorite Details"
+                                  >
+                                    <Check className="w-3.5 h-3.5" /> Save Favorite
+                                  </button>
+                                </div>
                               </div>
                             )}
                             {entry.notes && <p className="text-sm mt-3 text-foreground/80 italic border-l-2 border-primary/30 pl-3">"{entry.notes}"</p>}
@@ -584,10 +623,11 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                             <button 
                               onClick={async () => {
                                 if (entry.is_favorite) {
-                                  await useAnimeStore.getState().toggleProgressFavorite(entry.id, false, null);
+                                  await useAnimeStore.getState().toggleProgressFavorite(entry.id, false, null, null);
                                 } else {
                                   setIsEditingFavProgressId(entry.id);
                                   setFavProgressTimeInput(entry.favorite_time || "");
+                                  setFavProgressNoteInput(entry.favorite_note || "");
                                 }
                               }}
                               className="p-2 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"

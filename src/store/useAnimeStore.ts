@@ -20,6 +20,7 @@ export interface AnimeEntry {
   favorite_scene_time?: string | null;
   is_favorite?: boolean;
   favorite_time?: string | null;
+  favorite_note?: string | null;
 }
 
 export interface AnimeProgress {
@@ -37,7 +38,7 @@ interface AnimeState {
   completedSeries: string[];
   loading: boolean;
   fetchData: () => Promise<void>;
-  addEntryAsync: (data: { anime_name: string, type: string, total_episodes: string, season: string, episode: string, duration?: string, is_favorite?: boolean, favorite_time?: string | null, notes?: string }) => Promise<void>;
+  addEntryAsync: (data: { anime_name: string, type: string, total_episodes: string, season: string, episode: string, duration?: string, is_favorite?: boolean, favorite_time?: string | null, favorite_note?: string | null, notes?: string }) => Promise<void>;
   markCompleted: (anime_name: string) => Promise<void>;
   markWatching: (anime_name: string) => Promise<void>;
   markWaiting: (anime_name: string) => Promise<void>;
@@ -46,10 +47,10 @@ interface AnimeState {
   getWeeklyStreak: () => number;
   getProgressList: () => AnimeProgress[];
   deleteEntryAsync: (progressId: string) => Promise<void>;
-  editEntryAsync: (progressId: string, data: { episode: number, duration: string, notes?: string, season?: number, is_favorite?: boolean, favorite_time?: string | null }) => Promise<void>;
+  editEntryAsync: (progressId: string, data: { episode: number, duration: string, notes?: string, season?: number, is_favorite?: boolean, favorite_time?: string | null, favorite_note?: string | null }) => Promise<void>;
   updateSeasonFavorite: (seasonId: string, favoriteEpisode: string, favoriteEpisodeTime: string) => Promise<void>;
   updateContentFavorite: (contentId: string, favoriteScene: string, favoriteSceneTime: string) => Promise<void>;
-  toggleProgressFavorite: (progressId: string, isFav: boolean, favTime?: string | null) => Promise<void>;
+  toggleProgressFavorite: (progressId: string, isFav: boolean, favTime?: string | null, favNote?: string | null) => Promise<void>;
 }
 
 export const useAnimeStore = create<AnimeState>()((set, get) => ({
@@ -84,6 +85,7 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         updated_at,
         is_favorite,
         favorite_time,
+        favorite_note,
         seasons (
           id,
           season_number,
@@ -138,6 +140,7 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         favorite_scene_time: content.favorite_scene_time || null,
         is_favorite: row.is_favorite || false,
         favorite_time: row.favorite_time || null,
+        favorite_note: row.favorite_note || null,
       };
     });
 
@@ -205,7 +208,8 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
       duration_watched: String(data.duration || "0"),
       notes: data.notes || "",
       is_favorite: data.is_favorite || false,
-      favorite_time: data.favorite_time || null
+      favorite_time: data.favorite_time || null,
+      favorite_note: data.favorite_note || null
     });
 
     // Refresh store from cloud
@@ -226,6 +230,7 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
       notes: data.notes || "",
       is_favorite: data.is_favorite !== undefined ? data.is_favorite : false,
       favorite_time: data.favorite_time || null,
+      favorite_note: data.favorite_note || null,
       updated_at: new Date().toISOString()
     };
 
@@ -373,11 +378,12 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
     await get().fetchData();
   },
 
-  toggleProgressFavorite: async (progressId, isFav, favTime) => {
+  toggleProgressFavorite: async (progressId, isFav, favTime, favNote) => {
     const supabase = createClient();
     await supabase.from('progress').update({
       is_favorite: isFav,
-      favorite_time: favTime || null
+      favorite_time: favTime || null,
+      favorite_note: favNote || null
     }).eq('id', progressId);
     await get().fetchData();
   }
