@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { Background } from "@/components/layout/Background";
+
+import { AppLayout } from "@/components/layout/AppLayout";
 
 const outfit = Outfit({
   variable: "--font-sans",
@@ -25,12 +26,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans relative">
         <ThemeProvider>
           <Background />
-          <div className="flex min-h-screen w-full relative z-10">
-            <Sidebar />
-            <main className="flex-1 w-full pl-32 pr-8 py-8 max-w-[1600px] mx-auto transition-all duration-500">
-              {children}
-            </main>
-          </div>
+          <AppLayout>{children}</AppLayout>
         </ThemeProvider>
       </body>
     </html>

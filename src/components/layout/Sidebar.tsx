@@ -26,8 +26,12 @@ export function Sidebar() {
   const fetchData = useAnimeStore(state => state.fetchData);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (pathname !== '/login') {
+      fetchData();
+    }
+  }, [fetchData, pathname]);
+
+  if (pathname === '/login') return null;
 
   const handleLogout = async () => {
     const supabase = createClient();

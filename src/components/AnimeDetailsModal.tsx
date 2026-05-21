@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Edit2, Check, Trash2, Plus } from "lucide-react";
+import { X, Edit2, Check, Trash2, Plus, Star, Film } from "lucide-react";
 import { useAnimeStore, AnimeEntry } from "@/store/useAnimeStore";
 import { GlassCard } from "./ui/GlassCard";
 import { format } from "date-fns";
@@ -47,7 +47,26 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(animeName || "");
 
+  // Favorite states
+  const [isEditingFavProgressId, setIsEditingFavProgressId] = useState<string | null>(null);
+  const [favProgressTimeInput, setFavProgressTimeInput] = useState("");
+
+  const [isEditingMovieFav, setIsEditingMovieFav] = useState(false);
+  const [favSceneName, setFavSceneName] = useState("");
+  const [favSceneTime, setFavSceneTime] = useState("");
+
   if (!animeName) return null;
+
+  const saveProgressFav = async (progressId: string) => {
+    await useAnimeStore.getState().toggleProgressFavorite(progressId, true, favProgressTimeInput);
+    setIsEditingFavProgressId(null);
+  };
+
+  const saveMovieFav = async (cId: string | undefined) => {
+    if (!cId) return;
+    await useAnimeStore.getState().updateContentFavorite(cId, favSceneName, favSceneTime);
+    setIsEditingMovieFav(false);
+  };
 
   const animeEntries = entries.filter((e) => e.anime_name === animeName).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   
@@ -70,7 +89,14 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
 
   const startEdit = (entry: AnimeEntry) => {
     setEditingId(entry.id);
-    setEditForm({ season: String(entry.season || 1), episode: String(entry.episode), duration: String(entry.duration), notes: entry.notes || "" });
+    setEditForm({ 
+      season: String(entry.season || 1), 
+      episode: String(entry.episode), 
+      duration: String(entry.duration), 
+      notes: entry.notes || "",
+      is_favorite: entry.is_favorite || false,
+      favorite_time: entry.favorite_time || ""
+    } as any);
     setIsAdding(false);
   };
 
@@ -78,8 +104,10 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
     editEntryAsync(id, {
       season: parseInt(editForm.season) || 1,
       episode: parseInt(editForm.episode) || 1,
-      duration: editForm.duration,
-      notes: editForm.notes
+      duration: editForm.duration || "0",
+      notes: editForm.notes,
+      is_favorite: (editForm as any).is_favorite || false,
+      favorite_time: (editForm as any).favorite_time || null
     });
     setEditingId(null);
   };
@@ -92,8 +120,10 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
       total_episodes: "",
       season: editForm.season,
       episode: String(editForm.episode),
-      duration: String(editForm.duration),
-      notes: editForm.notes
+      duration: String(editForm.duration || "0"),
+      notes: editForm.notes,
+      is_favorite: (editForm as any).is_favorite || false,
+      favorite_time: (editForm as any).favorite_time || null
     } as any);
     setIsAdding(false);
   };
@@ -197,6 +227,79 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Movie Favorite Scene Card */}
+              {currentType === 'movie' && animeEntries.length > 0 && (
+                (() => {
+                  const movieEntry = animeEntries[0];
+                  const contentId = movieEntry?.content_id;
+                  const movieFavScene = movieEntry?.favorite_scene;
+                  const movieFavSceneTime = movieEntry?.favorite_scene_time;
+
+                  return (
+                    <div className="bg-purple-500/5 border border-purple-500/10 rounded-xl p-5 shadow-inner relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+                      <div className="flex items-center justify-between mb-3 relative z-10">
+                        <div className="flex items-center gap-2 text-sm font-bold text-purple-400 uppercase tracking-wider">
+                          <Film className="w-4 h-4" /> Favorite Scene
+                        </div>
+                        {!isEditingMovieFav && (
+                          <button 
+                            onClick={() => {
+                              setIsEditingMovieFav(true);
+                              setFavSceneName(movieFavScene || "");
+                              setFavSceneTime(movieFavSceneTime || "");
+                            }}
+                            className="text-purple-400 hover:text-purple-300 text-xs font-bold uppercase tracking-wider cursor-pointer bg-purple-500/10 px-2.5 py-1 rounded-md border border-purple-500/20 transition-all hover:scale-105"
+                          >
+                            {movieFavScene ? "Edit" : "Set Scene"}
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="relative z-10">
+                        {isEditingMovieFav ? (
+                          <div className="flex flex-col gap-3">
+                            <input 
+                              type="text" 
+                              placeholder="What was your favorite scene?" 
+                              value={favSceneName} 
+                              onChange={(e) => setFavSceneName(e.target.value)} 
+                              className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-purple-500 outline-none" 
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <input 
+                                type="text" 
+                                placeholder="Time (Optional, e.g. 1:12:30)" 
+                                value={favSceneTime} 
+                                onChange={(e) => setFavSceneTime(e.target.value)} 
+                                className="w-48 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-purple-500 outline-none" 
+                              />
+                              <button onClick={() => saveMovieFav(contentId)} className="px-3.5 py-2 bg-purple-500 text-white font-bold rounded-lg text-xs hover:bg-purple-600 transition-colors flex items-center gap-1 cursor-pointer">
+                                <Check className="w-3.5 h-3.5" /> Save
+                              </button>
+                              <button onClick={() => setIsEditingMovieFav(false)} className="px-3.5 py-2 hover:bg-white/10 rounded-lg text-xs text-muted-foreground transition-colors cursor-pointer">
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-sm">
+                            {movieFavScene ? (
+                              <div className="flex items-baseline gap-2 flex-wrap">
+                                <span className="font-semibold text-purple-200 text-base italic">"{movieFavScene}"</span>
+                                {movieFavSceneTime && <span className="text-xs text-purple-400/80 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">at {movieFavSceneTime}</span>}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic">No favorite scene set yet. Watch the movie and log your favorite moment!</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold">Activity Log</h3>
                 {!isAdding && (
@@ -225,9 +328,35 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                         <input type="number" required value={editForm.episode} onChange={(e) => setEditForm({...editForm, episode: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                       </div>
                       <div>
-                        <label className="text-xs text-muted-foreground block mb-1">Time (MM:SS)</label>
-                        <input type="text" required placeholder="15:30" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
+                        <label className="text-xs text-muted-foreground block mb-1">Time (MM:SS) (Optional)</label>
+                        <input type="text" placeholder="15:30 (Optional)" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2 pt-2">
+                        <input 
+                          type="checkbox" 
+                          id="new-fav"
+                          checked={!!(editForm as any).is_favorite}
+                          onChange={(e) => setEditForm({...editForm, is_favorite: e.target.checked} as any)}
+                          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary bg-black/40"
+                        />
+                        <label htmlFor="new-fav" className="text-xs text-muted-foreground font-semibold flex items-center gap-1 cursor-pointer">
+                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> Mark as Favorite Episode
+                        </label>
+                      </div>
+                      {(editForm as any).is_favorite && (
+                        <div>
+                          <label className="text-xs text-muted-foreground block mb-1">Favorite Moment Time (Optional)</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. 14:20" 
+                            value={(editForm as any).favorite_time || ""} 
+                            onChange={(e) => setEditForm({...editForm, favorite_time: e.target.value} as any)} 
+                            className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
+                          />
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Notes (Optional)</label>
@@ -262,15 +391,41 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                               <input type="number" value={editForm.episode} onChange={(e) => setEditForm({...editForm, episode: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                             </div>
                             <div>
-                              <label className="text-xs text-muted-foreground block mb-1">Time (MM:SS)</label>
+                              <label className="text-xs text-muted-foreground block mb-1">Time (MM:SS) (Optional)</label>
                               <input type="text" value={editForm.duration} onChange={(e) => setEditForm({...editForm, duration: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                             </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex items-center gap-2 pt-2">
+                              <input 
+                                type="checkbox" 
+                                id={`edit-fav-${entry.id}`}
+                                checked={!!(editForm as any).is_favorite}
+                                onChange={(e) => setEditForm({...editForm, is_favorite: e.target.checked} as any)}
+                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary bg-black/40"
+                              />
+                              <label htmlFor={`edit-fav-${entry.id}`} className="text-xs text-muted-foreground font-semibold flex items-center gap-1 cursor-pointer">
+                                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> Favorite Episode
+                              </label>
+                            </div>
+                            {(editForm as any).is_favorite && (
+                              <div>
+                                <label className="text-xs text-muted-foreground block mb-1">Favorite Moment Time (Optional)</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="e.g. 14:20" 
+                                  value={(editForm as any).favorite_time || ""} 
+                                  onChange={(e) => setEditForm({...editForm, favorite_time: e.target.value} as any)} 
+                                  className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white" 
+                                />
+                              </div>
+                            )}
                           </div>
                           <div>
                             <label className="text-xs text-muted-foreground block mb-1">Notes</label>
                             <input type="text" value={editForm.notes} onChange={(e) => setEditForm({...editForm, notes: e.target.value})} className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none text-foreground" />
                           </div>
-                          <div className="flex justify-between mt-2">
+                          <div className="flex justify-between mt-2 pt-2 border-t border-border/30">
                             <button onClick={() => deleteEntryAsync(entry.id)} className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-pointer" title="Delete">
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -389,14 +544,61 @@ export function AnimeDetailsModal({ animeName, onClose }: AnimeDetailsModalProps
                                 </button>
                               </div>
                             </div>
-                            <div className="flex gap-3 text-[11px] text-muted-foreground mt-2 font-medium">
+                            <div className="flex gap-3 text-[11px] text-muted-foreground mt-2 font-medium items-center">
                               <span>{format(new Date(entry.created_at), 'MMM d, yyyy')}</span>
+                              {entry.is_favorite && (
+                                <span className="text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20 flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-amber-400" />
+                                  <span>Favorite {entry.favorite_time ? `at ${entry.favorite_time}` : ''}</span>
+                                </span>
+                              )}
                             </div>
+                            {isEditingFavProgressId === entry.id && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="Fav time (Optional, e.g. 14:20)" 
+                                  value={favProgressTimeInput}
+                                  onChange={(e) => setFavProgressTimeInput(e.target.value)}
+                                  className="bg-black/40 border border-border rounded px-2.5 py-1 text-xs text-white focus:ring-1 focus:ring-amber-500 outline-none w-52"
+                                />
+                                <button 
+                                  onClick={() => saveProgressFav(entry.id)} 
+                                  className="p-1 hover:bg-white/10 rounded text-green-400 cursor-pointer"
+                                  title="Save Favorite Time"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => setIsEditingFavProgressId(null)} 
+                                  className="p-1 hover:bg-white/10 rounded text-muted-foreground cursor-pointer"
+                                  title="Cancel"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
                             {entry.notes && <p className="text-sm mt-3 text-foreground/80 italic border-l-2 border-primary/30 pl-3">"{entry.notes}"</p>}
                           </div>
-                          <button onClick={() => startEdit(entry)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
-                            <Edit2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={async () => {
+                                if (entry.is_favorite) {
+                                  await useAnimeStore.getState().toggleProgressFavorite(entry.id, false, null);
+                                } else {
+                                  setIsEditingFavProgressId(entry.id);
+                                  setFavProgressTimeInput(entry.favorite_time || "");
+                                }
+                              }}
+                              className="p-2 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                              title={entry.is_favorite ? "Unmark Favorite" : "Mark Favorite"}
+                            >
+                              <Star className={`w-4 h-4 ${entry.is_favorite ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/60 hover:text-amber-400'}`} />
+                            </button>
+                            <button onClick={() => startEdit(entry)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

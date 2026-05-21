@@ -11,6 +11,15 @@ export interface AnimeEntry {
   notes?: string;
   status: string;
   created_at: string;
+  // new optional metadata columns for favorites
+  season_id?: string;
+  favorite_episode?: string | null;
+  favorite_episode_time?: string | null;
+  content_id?: string;
+  favorite_scene?: string | null;
+  favorite_scene_time?: string | null;
+  is_favorite?: boolean;
+  favorite_time?: string | null;
 }
 
 export interface AnimeProgress {
@@ -28,7 +37,7 @@ interface AnimeState {
   completedSeries: string[];
   loading: boolean;
   fetchData: () => Promise<void>;
-  addEntryAsync: (data: { anime_name: string, type: string, total_episodes: string, season: string, episode: string, duration: string }) => Promise<void>;
+  addEntryAsync: (data: { anime_name: string, type: string, total_episodes: string, season: string, episode: string, duration?: string, is_favorite?: boolean, favorite_time?: string | null, notes?: string }) => Promise<void>;
   markCompleted: (anime_name: string) => Promise<void>;
   markWatching: (anime_name: string) => Promise<void>;
   markWaiting: (anime_name: string) => Promise<void>;
@@ -37,7 +46,10 @@ interface AnimeState {
   getWeeklyStreak: () => number;
   getProgressList: () => AnimeProgress[];
   deleteEntryAsync: (progressId: string) => Promise<void>;
-  editEntryAsync: (progressId: string, data: { episode: number, duration: string, notes?: string, season?: number }) => Promise<void>;
+  editEntryAsync: (progressId: string, data: { episode: number, duration: string, notes?: string, season?: number, is_favorite?: boolean, favorite_time?: string | null }) => Promise<void>;
+  updateSeasonFavorite: (seasonId: string, favoriteEpisode: string, favoriteEpisodeTime: string) => Promise<void>;
+  updateContentFavorite: (contentId: string, favoriteScene: string, favoriteSceneTime: string) => Promise<void>;
+  toggleProgressFavorite: (progressId: string, isFav: boolean, favTime?: string | null) => Promise<void>;
 }
 
 export const useAnimeStore = create<AnimeState>()((set, get) => ({
@@ -56,7 +68,7 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
       // Zombie state failsafe: Middleware allowed us in based on a dead cookie.
       // We must forcefully purge the dead cookie and return to login.
       await supabase.auth.signOut();
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
       return;
@@ -70,15 +82,21 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         duration_watched,
         notes,
         updated_at,
+        is_favorite,
+        favorite_time,
         seasons (
           id,
           season_number,
+          favorite_episode,
+          favorite_episode_time,
           content (
             id,
             title,
             type,
             status,
-            total_episodes
+            total_episodes,
+            favorite_scene,
+            favorite_scene_time
           )
         )
       `)
@@ -111,6 +129,15 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
         notes: row.notes || "",
         status: content.status || 'watching',
         created_at: row.updated_at,
+        // map metadata columns
+        season_id: season.id,
+        favorite_episode: season.favorite_episode || null,
+        favorite_episode_time: season.favorite_episode_time || null,
+        content_id: content.id,
+        favorite_scene: content.favorite_scene || null,
+        favorite_scene_time: content.favorite_scene_time || null,
+        is_favorite: row.is_favorite || false,
+        favorite_time: row.favorite_time || null,
       };
     });
 
@@ -176,7 +203,9 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
       season_id: seasonId,
       current_episode: parseInt(data.episode) || 0,
       duration_watched: String(data.duration || "0"),
-      notes: (data as any).notes || ""
+      notes: data.notes || "",
+      is_favorite: data.is_favorite || false,
+      favorite_time: data.favorite_time || null
     });
 
     // Refresh store from cloud
@@ -195,6 +224,8 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
       current_episode: data.episode,
       duration_watched: data.duration,
       notes: data.notes || "",
+      is_favorite: data.is_favorite !== undefined ? data.is_favorite : false,
+      favorite_time: data.favorite_time || null,
       updated_at: new Date().toISOString()
     };
 
@@ -322,5 +353,32 @@ export const useAnimeStore = create<AnimeState>()((set, get) => ({
       }
     });
     return Array.from(map.values()).sort((a, b) => new Date(b.last_watched).getTime() - new Date(a.last_watched).getTime());
+  },
+
+  updateSeasonFavorite: async (seasonId, favoriteEpisode, favoriteEpisodeTime) => {
+    const supabase = createClient();
+    await supabase.from('seasons').update({
+      favorite_episode: favoriteEpisode || null,
+      favorite_episode_time: favoriteEpisodeTime || null
+    }).eq('id', seasonId);
+    await get().fetchData();
+  },
+
+  updateContentFavorite: async (contentId, favoriteScene, favoriteSceneTime) => {
+    const supabase = createClient();
+    await supabase.from('content').update({
+      favorite_scene: favoriteScene || null,
+      favorite_scene_time: favoriteSceneTime || null
+    }).eq('id', contentId);
+    await get().fetchData();
+  },
+
+  toggleProgressFavorite: async (progressId, isFav, favTime) => {
+    const supabase = createClient();
+    await supabase.from('progress').update({
+      is_favorite: isFav,
+      favorite_time: favTime || null
+    }).eq('id', progressId);
+    await get().fetchData();
   }
 }));
